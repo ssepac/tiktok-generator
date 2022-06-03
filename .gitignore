@@ -1,0 +1,5 @@
+.env
+remove.sh
+output/*
+.DS_Store
+node_modules/
