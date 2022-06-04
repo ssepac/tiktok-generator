@@ -4,20 +4,32 @@ import fs from "fs";
 import GTTS from "gtts";
 import videoshow from "videoshow";
 import * as mm from "music-metadata";
-import util from "util";
 import { spawn } from "child_process";
 import Jimp from "jimp";
 
 (async () => {
-  const stories = await run("scarystories");
+  const config = {
+    subreddit: "scarystories",
+    assetsPicsDir: "scary",
+  };
+  const stories = await run(config.subreddit);
 
   await Promise.all(
-    stories.map(async (story, index) => {
+    stories.map(async (story) => {
       const screenshotPicFile = `output/pics/pic_screenshot_${story.name}.png`;
       const screenshotWithBgFile = `output/pics/pic_output_${story.name}.png`;
       const inputAudioFile = `output/audio/audio_input_${story.name}.mp3`;
       const outputAudioFile = `output/audio/audio_output_${story.name}.mp3`;
       const outputVideoFile = `output/video/video_output${story.name}.mp4`;
+
+      const getRandomFileFromDir = (subdir) => {
+        function getRandomInt(max) {
+          return Math.floor(Math.random() * max);
+        }
+        const len = fs.readdirSync(`assets/pics/${subdir}`).length;
+        const randIndex = getRandomInt(len);
+        return fs.readdirSync(`assets/pics/${subdir}`)[randIndex];
+      };
 
       //capture picture
       await captureWebsite
@@ -33,7 +45,9 @@ import Jimp from "jimp";
             height: screenshot.getHeight(),
           };
           // Reading original image
-          const bg = await Jimp.read("assets/pics/bg.jpg");
+          const bg = await Jimp.read(
+            `assets/pics/scary/${getRandomFileFromDir(config.assetsPicsDir)}`
+          );
           bg.scaleToFit(ssDimensions.width, Jimp.AUTO, Jimp.RESIZE_BEZIER);
           const bgDimensions = { width: bg.getWidth(), height: bg.getHeight() };
           bg.composite(
@@ -118,7 +132,7 @@ import Jimp from "jimp";
           const videoOptions = {
             aspect: "9:20", //Samsung S22 + iPhone is actually 19.5:9!
             fps: 25,
-            loop: duration, // seconds
+            loop: duration + 1.0, // an extra second added to curb off transition
             transition: false,
             videoBitrate: 1024,
             videoCodec: "libx264",

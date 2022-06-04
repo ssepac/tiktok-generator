@@ -3,3 +3,4 @@ remove.sh
 output/*
 .DS_Store
 node_modules/
+data.db
